@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ABSENSI GURU MUGADA</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js for PDF exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Dynamic Manifest Data URI for PWA -->
+    <script>
+        const manifestData = {
+            "name": "ABSENSI GURU MUGADA",
+            "short_name": "MUGADA Absen",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#1e3a8a",
+            "theme_color": "#1e3a8a",
+            "icons": [
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const manifestString = JSON.stringify(manifestData);
+        const manifestBlob = new Blob([manifestString], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+    </script>
+
+    <style>
+        /* Force Blogger Fullscreen Mode */
+        #header-wrapper, .header, .navbar, #sidebar-wrapper, .footer-wrapper, .post-footer, #comments, .blog-pager {
+            display: none !important;
+        }
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px -2px rgba(30, 58, 138, 0.05);
+        }
+        .glass-header {
+            background: rgba(30, 58, 138, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        /* Hide element utility */
+        .hidden-tab {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- TOP HEADER -->
+    <header class="glass-header text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <img id="app-logo-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Logo" class="w-10 h-10 object-contain bg-white rounded-full p-1 border-2 border-blue-400">
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">ABSENSI GURU MUGADA</h1>
+                    <p class="text-xs text-blue-200" id="current-date-display">Memuat tanggal...</p>
+                </div>
+            </div>
+            <div id="user-status-bar" class="flex items-center space-x-2">
+                <!-- Dynamic user badge or login button -->
+                <button onclick="openLoginModal()" class="bg-white text-blue-900 font-semibold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-blue-50 transition">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HARI LIBUR BANNER (IF ANY) -->
+    <div id="holiday-banner" class="hidden bg-amber-500 text-white text-center py-2 px-4 text-sm font-semibold shadow-inner">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="holiday-banner-text">Hari Ini Adalah Hari Libur</span>
+    </div>
+
+    <!-- MAIN CONTAINER WITH SIDEBAR / BOTTOM NAV -->
+    <div class="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto">
+        
+        <!-- SIDEBAR (DESKTOP) -->
+        <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-4 space-y-2 shrink-0">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">Navigasi Utama</div>
+            <button onclick="switchTab('dashboard')" id="nav-d-dashboard" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-blue-900 bg-blue-50">
+                <i class="fa-solid fa-chart-pie text-blue-700 w-5"></i>
+                <span>Dashboard</span>
+            </button>
+            
+            <div id="teacher-menu-desktop" class="hidden-tab space-y-1 pt-2">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">Menu Guru</div>
+                <button onclick="switchTab('guru-absen')" id="nav-d-guru-absen" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-location-dot text-slate-500 w-5"></i>
+                    <span>Absen Masuk</span>
+                </button>
+                <button onclick="switchTab('guru-izin')" id="nav-d-guru-izin" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-file-pen text-slate-500 w-5"></i>
+                    <span>Form Izin / Sakit</span>
+                </button>
+            </div>
+
+            <div id="admin-menu-desktop" class="hidden-tab space-y-1 pt-2">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-1">Menu Admin</div>
+                <button onclick="switchTab('admin-guru')" id="nav-d-admin-guru" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-users text-slate-500 w-5"></i>
+                    <span>Kelola Guru</span>
+                </button>
+                <button onclick="switchTab('admin-libur')" id="nav-d-admin-libur" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-calendar-xmark text-slate-500 w-5"></i>
+                    <span>Hari Libur</span>
+                </button>
+                <button onclick="switchTab('admin-rekap-tanggal')" id="nav-d-admin-rekap-tanggal" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-list-check text-slate-500 w-5"></i>
+                    <span>Rekap Tanggal</span>
+                </button>
+                <button onclick="switchTab('admin-rekap-bulan')" id="nav-d-admin-rekap-bulan" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-table-cells text-slate-500 w-5"></i>
+                    <span>Rekap Matriks Bulan</span>
+                </button>
+                <button onclick="switchTab('admin-pengaturan')" id="nav-d-admin-pengaturan" class="nav-btn-desktop flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-gear text-slate-500 w-5"></i>
+                    <span>Pengaturan Sistem</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto">
+            
+            <!-- VIEW: DASHBOARD (PUBLIC & DEFAULT) -->
+            <section id="view-dashboard" class="space-y-6">
+                <!-- STATISTIK HARI INI -->
+                <div>
+                    <h2 class="text-base font-bold text-blue-950 mb-3 flex items-center">
+                        <i class="fa-solid fa-chart-line mr-2 text-blue-700"></i> Ringkasan Kehadiran Hari Ini
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="glass-card p-4 rounded-xl border-l-4 border-emerald-500">
+                            <p class="text-xs text-slate-500 font-medium">Hadir</p>
+                            <h3 id="stat-hadir" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border-l-4 border-amber-500">
+                            <p class="text-xs text-slate-500 font-medium">Izin</p>
+                            <h3 id="stat-izin" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border-l-4 border-blue-500">
+                            <p class="text-xs text-slate-500 font-medium">Sakit</p>
+                            <h3 id="stat-sakit" class="text-2xl font-black text-blue-600 mt-1">0</h3>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border-l-4 border-rose-500">
+                            <p class="text-xs text-slate-500 font-medium">Alpha (Belum Absen)</p>
+                            <h3 id="stat-alpha" class="text-2xl font-black text-rose-600 mt-1">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRID: GURU BERTUGAS & RIWAYAT ABSENSI HARI INI -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Guru Bertugas Hari Ini -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-sm font-bold text-blue-900 mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-user-check mr-2 text-blue-700"></i> Guru Bertugas Hari Ini</span>
+                            <span id="badge-bertugas-count" class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-semibold">0 Guru</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                    <tr>
+                                        <th class="p-2.5 rounded-l-lg">NIP / ID</th>
+                                        <th class="p-2.5">Nama Guru</th>
+                                        <th class="p-2.5 rounded-r-lg text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-guru-bertugas" class="divide-y divide-slate-100">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Riwayat Absensi Hari Ini -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-sm font-bold text-blue-900 mb-3">
+                            <i class="fa-solid fa-clock-rotate-left mr-2 text-blue-700"></i> Log Absensi Hari Ini
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                    <tr>
+                                        <th class="p-2.5 rounded-l-lg">Nama</th>
+                                        <th class="p-2.5">Waktu / Status</th>
+                                        <th class="p-2.5 rounded-r-lg">Keterangan / Alasan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-log-hari-ini" class="divide-y divide-slate-100">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERINGKAT GURU TERBAIK BULAN INI -->
+                <div class="glass-card rounded-xl p-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-blue-900">
+                                <i class="fa-solid fa-trophy mr-2 text-amber-500"></i> Peringkat Kehadiran Guru Terbaik (Bulan Ini)
+                            </h3>
+                            <p class="text-xs text-slate-500">Di-reset otomatis tiap awal bulan. Berdasarkan presentase hari tugas & jam arrival terawal.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-blue-900 text-white uppercase font-semibold">
+                                <tr>
+                                    <th class="p-2.5 rounded-l-lg text-center">Rank</th>
+                                    <th class="p-2.5">Nama Guru</th>
+                                    <th class="p-2.5 text-center">Hadir Tugas</th>
+                                    <th class="p-2.5 text-center">Total Hari Tugas</th>
+                                    <th class="p-2.5 text-center">Persentase</th>
+                                    <th class="p-2.5 rounded-r-lg text-center">Rata-rata Jam Masuk</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-leaderboard" class="divide-y divide-slate-100">
+                                <!-- Dynamic leaderboard content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: GURU - ABSEN MASUK -->
+            <section id="view-guru-absen" class="hidden-tab space-y-6">
+                <!-- Ringkasan Guru -->
+                <div class="glass-card p-5 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <span class="text-xs bg-blue-700/60 px-3 py-1 rounded-full uppercase tracking-wider font-semibold">Akun Guru</span>
+                            <h2 id="guru-profile-name" class="text-xl font-bold mt-2">Nama Guru</h2>
+                            <p id="guru-profile-nip" class="text-xs text-blue-200">NIP: -</p>
+                        </div>
+                        <div class="flex space-x-4 bg-white/10 p-3 rounded-xl backdrop-blur-md">
+                            <div class="text-center px-2">
+                                <p class="text-[10px] text-blue-200 uppercase">Persentase</p>
+                                <p id="guru-stat-percent" class="text-lg font-black text-emerald-400">0%</p>
+                            </div>
+                            <div class="border-r border-white/20"></div>
+                            <div class="text-center px-2">
+                                <p class="text-[10px] text-blue-200 uppercase">Peringkat</p>
+                                <p id="guru-stat-rank" class="text-lg font-black text-amber-400">#-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Absen Lokasi -->
+                <div class="glass-card p-6 rounded-2xl text-center space-y-4">
+                    <h3 class="font-bold text-base text-blue-950">Presensi Kehadiran Berbasis Lokasi</h3>
+                    
+                    <div id="geo-status-box" class="inline-flex items-center space-x-2 bg-slate-100 px-4 py-2 rounded-full text-xs font-medium text-slate-700">
+                        <i class="fa-solid fa-spinner fa-spin text-blue-600"></i>
+                        <span id="geo-status-text">Mendeteksi lokasi Anda...</span>
+                    </div>
+
+                    <div id="absen-action-container" class="py-4">
+                        <button id="btn-do-absen" onclick="submitAbsenMasuk()" class="w-48 h-48 rounded-full bg-blue-800 text-white font-black text-lg shadow-2xl hover:bg-blue-900 active:scale-95 transition flex flex-col items-center justify-center mx-auto border-8 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-fingerprint text-4xl mb-2"></i>
+                            <span>ABSEN MASUK</span>
+                        </button>
+                    </div>
+
+                    <div id="absen-lock-reason" class="hidden text-rose-600 text-xs font-semibold bg-rose-50 p-3 rounded-lg border border-rose-200">
+                        <!-- Message if locked -->
+                    </div>
+                </div>
+
+                <!-- Riwayat Absen Pribadi -->
+                <div class="glass-card p-4 rounded-xl">
+                    <h3 class="text-sm font-bold text-blue-900 mb-3">Riwayat Absensi Saya (Bulan Ini)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-2.5 rounded-l-lg">Tanggal</th>
+                                    <th class="p-2.5">Waktu</th>
+                                    <th class="p-2.5">Status</th>
+                                    <th class="p-2.5 rounded-r-lg">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-my-history" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: GURU - FORM IZIN / SAKIT -->
+            <section id="view-guru-izin" class="hidden-tab space-y-6">
+                <div class="max-w-lg mx-auto glass-card p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-lg font-bold text-blue-950 mb-1">Form Halangan (Izin / Sakit)</h2>
+                    <p class="text-xs text-slate-500 mb-6">Ajukan ketidakhadiran jika berhalangan hadir pada hari bertugas.</p>
+
+                    <form id="form-izin-sakit" onsubmit="handleFormIzin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Halangan</label>
+                            <select id="izin-type" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+                                <option value="IZIN">IZIN</option>
+                                <option value="SAKIT">SAKIT</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Alasan Lengkap</label>
+                            <textarea id="izin-reason" rows="4" required placeholder="Tuliskan alasan lengkap ketidakhadiran..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-600"></textarea>
+                        </div>
+
+                        <button type="submit" id="btn-submit-izin" class="w-full py-2.5 bg-blue-800 text-white rounded-lg font-semibold text-sm hover:bg-blue-900 transition shadow">
+                            Kirim Permohonan Izin / Sakit
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN - KELOLA GURU -->
+            <section id="view-admin-guru" class="hidden-tab space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-blue-950">Manajemen Data Guru</h2>
+                    <button onclick="openModalGuru()" class="bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hover:bg-blue-900">
+                        <i class="fa-solid fa-plus mr-1"></i> Tambah Guru
+                    </button>
+                </div>
+
+                <div class="glass-card rounded-xl overflow-hidden p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-100 text-slate-700 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">NIP/ID</th>
+                                    <th class="p-3">Nama Lengkap</th>
+                                    <th class="p-3">Username</th>
+                                    <th class="p-3">Hari Tugas</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-admin-teachers" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN - HARI LIBUR -->
+            <section id="view-admin-libur" class="hidden-tab space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Hari Libur Mingguan -->
+                    <div class="glass-card p-5 rounded-xl">
+                        <h3 class="text-sm font-bold text-blue-950 mb-3">Pengaturan Hari Libur Mingguan</h3>
+                        <p class="text-xs text-slate-500 mb-4">Centang hari libur tetap mingguan sekolah.</p>
+                        <form id="form-weekly-holidays" onsubmit="saveWeeklyHolidays(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="0" class="weekly-checkbox"> <span>Minggu</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="1" class="weekly-checkbox"> <span>Senin</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="2" class="weekly-checkbox"> <span>Selasa</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="3" class="weekly-checkbox"> <span>Rabu</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="4" class="weekly-checkbox"> <span>Kamis</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="5" class="weekly-checkbox"> <span>Jumat</span>
+                                </label>
+                                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border">
+                                    <input type="checkbox" value="6" class="weekly-checkbox"> <span>Sabtu</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-blue-800 text-white rounded text-xs font-bold hover:bg-blue-900 mt-2">
+                                Simpan Libur Mingguan
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hari Libur Kustom -->
+                    <div class="glass-card p-5 rounded-xl">
+                        <h3 class="text-sm font-bold text-blue-950 mb-3">Tambah Hari Libur Kustom</h3>
+                        <form id="form-custom-holiday" onsubmit="addCustomHoliday(event)" class="space-y-3 mb-4">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Libur</label>
+                                <input type="date" id="holiday-date" required class="w-full px-3 py-1.5 text-xs border rounded focus:outline-none border-slate-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Keterangan Libur</label>
+                                <input type="text" id="holiday-desc" placeholder="Contoh: Idul Fitri / Hari Guru" required class="w-full px-3 py-1.5 text-xs border rounded focus:outline-none border-slate-300">
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-emerald-700 text-white rounded text-xs font-bold hover:bg-emerald-800">
+                                Tambah Hari Libur
+                            </button>
+                        </form>
+
+                        <h4 class="text-xs font-bold text-slate-700 mb-2">Daftar Libur Kustom</h4>
+                        <div class="max-h-48 overflow-y-auto">
+                            <ul id="list-custom-holidays" class="divide-y divide-slate-100 text-xs">
+                                <!-- Dynamic -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN - REKAP TANGGAL -->
+            <section id="view-admin-rekap-tanggal" class="hidden-tab space-y-6">
+                <div class="glass-card p-5 rounded-xl">
+                    <h2 class="text-base font-bold text-blue-950 mb-4">Rekap Absensi Berdasarkan Rentang Tanggal</h2>
+                    <div class="flex flex-wrap items-end gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Dari Tanggal</label>
+                            <input type="date" id="filter-start-date" class="px-3 py-1.5 border border-slate-300 rounded text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Sampai Tanggal</label>
+                            <input type="date" id="filter-end-date" class="px-3 py-1.5 border border-slate-300 rounded text-xs">
+                        </div>
+                        <button onclick="renderRekapTanggal()" class="bg-blue-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-900">
+                            <i class="fa-solid fa-filter mr-1"></i> Tampilkan
+                        </button>
+                        <button onclick="downloadRekapTanggalPDF()" class="bg-rose-700 text-white px-4 py-2 rounded text-xs font-bold hover:bg-rose-800">
+                            <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div id="print-area-tanggal" class="overflow-x-auto p-2 bg-white rounded-lg">
+                        <div class="text-center mb-4 hidden print:block">
+                            <h2 class="font-bold text-lg">REKAPITULASI ABSENSI GURU MUGADA</h2>
+                            <p id="pdf-period-text" class="text-xs text-slate-500"></p>
+                        </div>
+                        <table class="w-full text-xs text-left border-collapse border border-slate-200">
+                            <thead class="bg-slate-100 font-semibold text-slate-700">
+                                <tr>
+                                    <th class="border p-2">Tanggal</th>
+                                    <th class="border p-2">NIP</th>
+                                    <th class="border p-2">Nama Guru</th>
+                                    <th class="border p-2">Status</th>
+                                    <th class="border p-2">Waktu</th>
+                                    <th class="border p-2">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-rekap-tanggal" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN - REKAP MATRIKS BULAN -->
+            <section id="view-admin-rekap-bulan" class="hidden-tab space-y-6">
+                <div class="glass-card p-5 rounded-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                        <h2 class="text-base font-bold text-blue-950">Rekapitulasi Matriks Bulanan</h2>
+                        <div class="flex items-center space-x-2">
+                            <select id="filter-month" class="px-3 py-1.5 border border-slate-300 rounded text-xs">
+                                <option value="0">Januari</option>
+                                <option value="1">Februari</option>
+                                <option value="2">Maret</option>
+                                <option value="3">April</option>
+                                <option value="4">Mei</option>
+                                <option value="5">Juni</option>
+                                <option value="6">Juli</option>
+                                <option value="7">Agustus</option>
+                                <option value="8">September</option>
+                                <option value="9">Oktober</option>
+                                <option value="10">November</option>
+                                <option value="11">Desember</option>
+                            </select>
+                            <select id="filter-year" class="px-3 py-1.5 border border-slate-300 rounded text-xs"></select>
+                            <button onclick="renderRekapBulan()" class="bg-blue-800 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-900">
+                                Tampilkan
+                            </button>
+                            <button onclick="downloadRekapBulanPDF()" class="bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-rose-800">
+                                PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Keterangan Kode Matriks -->
+                    <div class="flex flex-wrap gap-3 text-[11px] mb-3 bg-slate-50 p-2 rounded border border-slate-200">
+                        <span><strong class="text-blue-900">Jam:Menit</strong> = Hadir Sesuai Tugas</span>
+                        <span><strong class="text-emerald-700">H</strong> = Hadir Di Luar Tugas</span>
+                        <span><strong class="text-rose-700">A</strong> = Alpha (Hari Tugas)</span>
+                        <span><strong class="text-amber-700">I / S</strong> = Izin / Sakit</span>
+                        <span><strong class="text-slate-500">L</strong> = Hari Libur</span>
+                    </div>
+
+                    <div id="print-area-bulan" class="overflow-x-auto bg-white p-2 rounded-lg">
+                        <table class="w-full text-[9px] border-collapse border border-slate-300">
+                            <thead class="bg-slate-200 text-slate-800 font-bold" id="thead-matriks-bulan">
+                                <!-- Dynamic dynamic date columns -->
+                            </thead>
+                            <tbody id="tbody-matriks-bulan" class="divide-y divide-slate-200">
+                                <!-- Dynamic matriks rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ADMIN - PENGATURAN -->
+            <section id="view-admin-pengaturan" class="hidden-tab space-y-6">
+                <div class="max-w-xl mx-auto glass-card p-6 rounded-2xl shadow-md">
+                    <h2 class="text-base font-bold text-blue-950 mb-4">Pengaturan Sistem Aplikasi</h2>
+                    
+                    <form id="form-settings" onsubmit="saveSystemSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">URL Logo Aplikasi</label>
+                            <input type="url" id="setting-logo-url" required class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Batas Jam Absen Ditutup (HH:mm)</label>
+                            <input type="time" id="setting-close-time" required class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                            <p class="text-[10px] text-slate-500 mt-0.5">Setelah jam ini, fitur absen guru otomatis dikunci.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude Sekolah</label>
+                                <input type="number" step="any" id="setting-lat" required class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude Sekolah</label>
+                                <input type="number" step="any" id="setting-lng" required class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Radius Toleransi Absen (Meter)</label>
+                            <input type="number" id="setting-radius" required class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 bg-blue-800 text-white font-bold rounded-lg text-xs hover:bg-blue-900 shadow">
+                            Simpan Pengaturan
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- BOTTOM NAVIGATION (MOBILE ONLY) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-card border-t border-slate-200 z-40 px-2 py-1 flex justify-around items-center">
+        <button onclick="switchTab('dashboard')" id="nav-m-dashboard" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-blue-900">
+            <i class="fa-solid fa-chart-pie text-lg"></i>
+            <span class="text-[10px] font-medium">Dashboard</span>
+        </button>
+
+        <div id="teacher-menu-mobile" class="contents hidden-tab">
+            <button onclick="switchTab('guru-absen')" id="nav-m-guru-absen" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-slate-500">
+                <i class="fa-solid fa-location-dot text-lg"></i>
+                <span class="text-[10px] font-medium">Absen</span>
+            </button>
+            <button onclick="switchTab('guru-izin')" id="nav-m-guru-izin" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-slate-500">
+                <i class="fa-solid fa-file-pen text-lg"></i>
+                <span class="text-[10px] font-medium">Izin</span>
+            </button>
+        </div>
+
+        <div id="admin-menu-mobile" class="contents hidden-tab">
+            <button onclick="switchTab('admin-guru')" id="nav-m-admin-guru" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-slate-500">
+                <i class="fa-solid fa-users text-lg"></i>
+                <span class="text-[10px] font-medium">Guru</span>
+            </button>
+            <button onclick="switchTab('admin-libur')" id="nav-m-admin-libur" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-slate-500">
+                <i class="fa-solid fa-calendar-xmark text-lg"></i>
+                <span class="text-[10px] font-medium">Libur</span>
+            </button>
+            <button onclick="switchTab('admin-rekap-bulan')" id="nav-m-admin-rekap-bulan" class="nav-btn-mobile flex flex-col items-center py-1 px-3 text-slate-500">
+                <i class="fa-solid fa-table-cells text-lg"></i>
+                <span class="text-[10px] font-medium">Rekap</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL LOGIN -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold text-blue-950 text-center mb-4">Masuk ke Aplikasi</h2>
+            
+            <!-- Tab Switcher Role Login -->
+            <div class="flex border-b border-slate-200 mb-4">
+                <button id="tab-login-guru" onclick="switchLoginRole('guru')" class="flex-1 py-2 font-bold text-xs border-b-2 border-blue-800 text-blue-800">
+                    Login Guru
+                </button>
+                <button id="tab-login-admin" onclick="switchLoginRole('admin')" class="flex-1 py-2 font-bold text-xs border-b-2 border-transparent text-slate-500">
+                    Login Admin
+                </button>
+            </div>
+
+            <!-- Form Login Guru -->
+            <form id="form-login-guru" onsubmit="handleGuruLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Username / ID Guru</label>
+                    <input type="text" id="login-guru-username" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="login-guru-password" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-blue-800 text-white font-bold text-xs rounded-lg hover:bg-blue-900">
+                    Masuk Sebagai Guru
+                </button>
+            </form>
+
+            <!-- Form Login Admin -->
+            <form id="form-login-admin" onsubmit="handleAdminLogin(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email Admin (Firebase Auth)</label>
+                    <input type="email" id="login-admin-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password Admin</label>
+                    <input type="password" id="login-admin-password" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-600">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-indigo-900 text-white font-bold text-xs rounded-lg hover:bg-indigo-950">
+                    Masuk Sebagai Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH / EDIT GURU -->
+    <div id="modal-guru" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-lg rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModalGuru()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h2 id="modal-guru-title" class="text-base font-bold text-blue-950 mb-4">Tambah Guru Baru</h2>
+
+            <form id="form-teacher" onsubmit="saveTeacher(event)" class="space-y-4">
+                <input type="hidden" id="teacher-doc-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">NIP / ID Guru</label>
+                    <input type="text" id="teacher-nip" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap Guru</label>
+                    <input type="text" id="teacher-name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                        <input type="text" id="teacher-username" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                        <input type="text" id="teacher-password" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Pengaturan Hari Tugas Guru</label>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="1" class="teacher-workday-cb"> <span>Senin</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="2" class="teacher-workday-cb"> <span>Selasa</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="3" class="teacher-workday-cb"> <span>Rabu</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="4" class="teacher-workday-cb"> <span>Kamis</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="5" class="teacher-workday-cb"> <span>Jumat</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="6" class="teacher-workday-cb"> <span>Sabtu</span></label>
+                        <label class="flex items-center space-x-1.5"><input type="checkbox" value="0" class="teacher-workday-cb"> <span>Minggu</span></label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-blue-800 text-white rounded-lg text-xs font-bold hover:bg-blue-900">
+                    Simpan Data Guru
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE MODULE & CORE LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ==========================================
+        // KONFIGURASI APLIKASI & DEPLOYMENT SWITCH
+        // ==========================================
+        const IS_PREVIEW = false; // Set false JIKA SUDAH TERHUBUNG KE FIREBASE BENAR
+
+        // PASTE FIREBASE CONFIG ANDA DI SINI
+        const firebaseConfig = {
+            apiKey: "AIzaSyCk-x8yxk3F1mIbMVOioUWtXnsUup5rxm4",
+  authDomain: "absensi-guru-790e6.firebaseapp.com",
+  projectId: "absensi-guru-790e6",
+  storageBucket: "absensi-guru-790e6.firebasestorage.app",
+  messagingSenderId: "309663113020",
+  appId: "1:309663113020:web:a521bde3a328b0b74ac839"
+        };
+
+        // GLOBAL APP STATE
+        let db = null;
+        let auth = null;
+        let currentUserRole = 'guest'; // 'guest', 'guru', 'admin'
+        let currentGuruData = null;
+        let currentPosition = null;
+
+        // IN-MEMORY STORAGE FOR PREVIEW MODE
+        let mockState = {
+            settings: {
+                logoUrl: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                closeTime: "07:30",
+                lat: -6.200000,
+                lng: 106.816666,
+                radius: 100,
+                weeklyHolidays: [0, 6] // Minggu & Sabtu
+            },
+            teachers: [
+                { id: "t1", nip: "19850101", name: "Budi Santoso, S.Pd", username: "budi", password: "123", workDays: [1,2,3,4,5] },
+                { id: "t2", nip: "19880202", name: "Siti Aminah, M.Pd", username: "siti", password: "123", workDays: [1,2,3,4,5] },
+                { id: "t3", nip: "19900303", name: "Ahmad Dahlan, S.Ag", username: "ahmad", password: "123", workDays: [1,2,3,4,5] }
+            ],
+            customHolidays: [],
+            attendances: []
+        };
+
+        // HELPER FUNCTIONS
+        const getTodayStr = () => new Date().toISOString().split('T')[0];
+        const getTimeStr = () => new Date().toTimeString().substring(0, 5);
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', async () => {
+            setupDatesUI();
+            registerServiceWorkerBlob();
+            
+            if (!IS_PREVIEW && firebaseConfig.apiKey !== "API_KEY_ANDA") {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    await autoSetupDatabase();
+                    listenAuth();
+                } catch (e) {
+                    console.error("Firebase Init Error:", e);
+                    initPreviewMode();
+                }
+            } else {
+                initPreviewMode();
+            }
+        });
+
+        // SERVICE WORKER REGISTRATION (BLOB DATA URI)
+        function registerServiceWorkerBlob() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => self.clients.claim());
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+                `;
+                const blob = new Blob([swCode], { type: 'text/javascript' });
+                const url = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(url).catch(err => console.log('SW Fail', err));
+            }
+        }
+
+        // AUTO SETUP DATABASE (SEEDED DATA)
+        async function autoSetupDatabase() {
+            if (!db) return;
+            try {
+                const configRef = doc(db, "settings", "config");
+                const configSnap = await getDoc(configRef);
+                
+                if (!configSnap.exists()) {
+                    await setDoc(configRef, mockState.settings);
+                    
+                    for (const t of mockState.teachers) {
+                        await setDoc(doc(db, "teachers", t.id), t);
+                    }
+                    console.log("Database seeded successfully.");
+                }
+            } catch (err) {
+                console.warn("Auto setup error:", err);
+            }
+        }
+
+        function initPreviewMode() {
+            console.log("Operating in Preview Mode");
+            refreshAllViews();
+            initGeolocation();
+        }
+
+        function listenAuth() {
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    currentUserRole = 'admin';
+                    updateUserUI('Admin Sekolah');
+                    showAdminMenus();
+                    switchTab('dashboard');
+                } else if (currentUserRole !== 'guru') {
+                    currentUserRole = 'guest';
+                    updateUserUI(null);
+                    hideSpecialMenus();
+                }
+                refreshAllViews();
+            });
+        }
+
+        // GEOLOCATION ENGINE
+        function initGeolocation() {
+            const geoStatus = document.getElementById('geo-status-text');
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(
+                    (pos) => {
+                        currentPosition = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude
+                        };
+                        checkAbsenEligibility();
+                    },
+                    (err) => {
+                        geoStatus.textContent = "Gagal mengakses GPS: " + err.message;
+                    },
+                    { enableHighAccuracy: true, maximumAge: 10000 }
+                );
+            } else {
+                geoStatus.textContent = "Browser tidak mendukung GPS.";
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // in meters
+        }
+
+        function checkAbsenEligibility() {
+            const btn = document.getElementById('btn-do-absen');
+            const statusText = document.getElementById('geo-status-text');
+            const lockBox = document.getElementById('absen-lock-reason');
+            
+            if (!btn) return;
+
+            const config = mockState.settings;
+            const today = getTodayStr();
+            const nowTime = getTimeStr();
+            const dayOfWeek = new Date().getDay();
+
+            // Check Lock Conditions
+            let isLocked = false;
+            let lockReason = "";
+
+            // 1. Check Holiday
+            const isWeeklyHoliday = config.weeklyHolidays.includes(dayOfWeek);
+            const customHoliday = mockState.customHolidays.find(h => h.date === today);
+
+            if (isWeeklyHoliday || customHoliday) {
+                isLocked = true;
+                lockReason = `Absen terkunci: Hari ini Libur (${customHoliday ? customHoliday.description : 'Libur Mingguan'}).`;
+            } 
+            // 2. Check Time Cutoff
+            else if (nowTime > config.closeTime) {
+                isLocked = true;
+                lockReason = `Absen terkunci: Sudah melewati batas jam tutup (${config.closeTime}).`;
+            }
+            // 3. Check Already Absen
+            else if (currentGuruData) {
+                const already = mockState.attendances.find(a => a.teacherId === currentGuruData.id && a.date === today);
+                if (already) {
+                    isLocked = true;
+                    lockReason = `Anda sudah melakukan presensi hari ini (${already.status} jam ${already.time}).`;
+                }
+            }
+
+            // 4. Check Geolocation
+            if (currentPosition && !isLocked) {
+                const dist = calculateDistance(currentPosition.lat, currentPosition.lng, config.lat, config.lng);
+                const isWithinRadius = dist <= config.radius;
+
+                statusText.textContent = `Jarak Anda: ${Math.round(dist)}m dari sekolah (Max: ${config.radius}m)`;
+                
+                if (!isWithinRadius) {
+                    isLocked = true;
+                    lockReason = `Anda berada di luar radius lokasi absensi (${Math.round(dist)}m).`;
+                }
+            } else if (!currentPosition && !isLocked) {
+                statusText.textContent = "Mencari sinyal GPS...";
+            }
+
+            if (isLocked) {
+                btn.disabled = true;
+                lockBox.classList.remove('hidden');
+                lockBox.textContent = lockReason;
+            } else {
+                btn.disabled = false;
+                lockBox.classList.add('hidden');
+            }
+        }
+
+        // DATA COMPUTATIONS & UI RENDERING
+        window.refreshAllViews = function() {
+            renderDashboard();
+            renderLeaderboard();
+            checkHolidayBanner();
+            if (currentUserRole === 'guru') renderGuruPanel();
+            if (currentUserRole === 'admin') {
+                renderAdminTeachers();
+                renderCustomHolidays();
+                populateYearDropdown();
+            }
+        };
+
+        function checkHolidayBanner() {
+            const today = getTodayStr();
+            const dayOfWeek = new Date().getDay();
+            const config = mockState.settings;
+            const banner = document.getElementById('holiday-banner');
+            const bannerText = document.getElementById('holiday-banner-text');
+
+            const isWeekly = config.weeklyHolidays.includes(dayOfWeek);
+            const custom = mockState.customHolidays.find(h => h.date === today);
+
+            if (isWeekly || custom) {
+                banner.classList.remove('hidden');
+                bannerText.textContent = `PEMBERITAHUAN: HARI INI ADALAH HARI LIBUR (${custom ? custom.description : 'Libur Mingguan'}). FITUR ABSENSI DIKUNCI.`;
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function renderDashboard() {
+            const today = getTodayStr();
+            const dayOfWeek = new Date().getDay();
+
+            // Teachers assigned today
+            const teachersToday = mockState.teachers.filter(t => t.workDays.includes(dayOfWeek));
+            document.getElementById('badge-bertugas-count').textContent = `${teachersToday.length} Guru`;
+
+            // Attendance today
+            const todayAtt = mockState.attendances.filter(a => a.date === today);
+
+            let hadirCount = 0, izinCount = 0, sakitCount = 0;
+            todayAtt.forEach(a => {
+                if (a.status === 'HADIR') hadirCount++;
+                if (a.status === 'IZIN') izinCount++;
+                if (a.status === 'SAKIT') sakitCount++;
+            });
+
+            const alphaCount = Math.max(0, teachersToday.length - (hadirCount + izinCount + sakitCount));
+
+            document.getElementById('stat-hadir').textContent = hadirCount;
+            document.getElementById('stat-izin').textContent = izinCount;
+            document.getElementById('stat-sakit').textContent = sakitCount;
+            document.getElementById('stat-alpha').textContent = alphaCount;
+
+            // Render Table Guru Bertugas
+            const tbodyBertugas = document.getElementById('table-guru-bertugas');
+            tbodyBertugas.innerHTML = teachersToday.map(t => {
+                const att = todayAtt.find(a => a.teacherId === t.id);
+                let statusBadge = '<span class="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Belum Absen</span>';
+                if (att) {
+                    if (att.status === 'HADIR') statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Hadir (${att.time})</span>`;
+                    if (att.status === 'IZIN') statusBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Izin</span>`;
+                    if (att.status === 'SAKIT') statusBadge = `<span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Sakit</span>`;
+                }
+                return `<tr>
+                    <td class="p-2.5 font-mono text-slate-500">${t.nip}</td>
+                    <td class="p-2.5 font-semibold text-slate-800">${t.name}</td>
+                    <td class="p-2.5 text-center">${statusBadge}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-slate-400">Tidak ada guru bertugas hari ini.</td></tr>`;
+
+            // Render Table Log Hari Ini
+            const tbodyLog = document.getElementById('table-log-hari-ini');
+            tbodyLog.innerHTML = todayAtt.map(a => {
+                const t = mockState.teachers.find(x => x.id === a.teacherId);
+                return `<tr>
+                    <td class="p-2.5 font-semibold text-slate-800">${t ? t.name : 'Guru'}</td>
+                    <td class="p-2.5"><span class="font-bold">${a.status}</span> ${a.time ? `(${a.time})` : ''}</td>
+                    <td class="p-2.5 text-slate-600">${a.notes || '-'}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-slate-400">Belum ada aktivitas absensi hari ini.</td></tr>`;
+        }
+
+        function computeMonthlyLeaderboard() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // Calculate total duty days for each teacher in current month up to today
+            const teachersStats = mockState.teachers.map(t => {
+                let dutyDaysCount = 0;
+                let presentDutyDays = 0;
+                let totalArrivalMinutes = 0;
+
+                // Loop days of month up to today
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateObj = new Date(currentYear, currentMonth, d);
+                    if (dateObj > now) break; // reset/limit to current date
+
+                    const dateStr = dateObj.toISOString().split('T')[0];
+                    const dayOfWeek = dateObj.getDay();
+
+                    // Check if holiday
+                    const isWeekly = mockState.settings.weeklyHolidays.includes(dayOfWeek);
+                    const custom = mockState.customHolidays.find(h => h.date === dateStr);
+
+                    if (!isWeekly && !custom && t.workDays.includes(dayOfWeek)) {
+                        dutyDaysCount++;
+
+                        // Check attendance
+                        const att = mockState.attendances.find(a => a.teacherId === t.id && a.date === dateStr && a.status === 'HADIR');
+                        if (att) {
+                            presentDutyDays++;
+                            if (att.time) {
+                                const [hh, mm] = att.time.split(':').map(Number);
+                                totalArrivalMinutes += (hh * 60 + mm);
+                            }
+                        }
+                    }
+                }
+
+                const percentage = dutyDaysCount > 0 ? (presentDutyDays / dutyDaysCount) * 100 : 0;
+                const avgMinutes = presentDutyDays > 0 ? totalArrivalMinutes / presentDutyDays : 9999;
+
+                return {
+                    teacher: t,
+                    dutyDaysCount,
+                    presentDutyDays,
+                    percentage,
+                    avgMinutes
+                };
+            });
+
+            // Sort by Percentage DESC, then avgMinutes ASC
+            teachersStats.sort((a, b) => {
+                if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+                return a.avgMinutes - b.avgMinutes;
+            });
+
+            return teachersStats;
+        }
+
+        function renderLeaderboard() {
+            const leaderboard = computeMonthlyLeaderboard();
+            const tbody = document.getElementById('table-leaderboard');
+
+            tbody.innerHTML = leaderboard.map((item, idx) => {
+                const avgHH = item.avgMinutes !== 9999 ? String(Math.floor(item.avgMinutes / 60)).padStart(2, '0') : '--';
+                const avgMM = item.avgMinutes !== 9999 ? String(Math.floor(item.avgMinutes % 60)).padStart(2, '0') : '--';
+                
+                let badgeRank = `<span class="font-bold text-slate-500">#${idx + 1}</span>`;
+                if (idx === 0) badgeRank = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold"><i class="fa-solid fa-crown text-amber-500"></i> #1</span>`;
+                if (idx === 1) badgeRank = `<span class="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">#2</span>`;
+                if (idx === 2) badgeRank = `<span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-bold">#3</span>`;
+
+                return `<tr>
+                    <td class="p-2.5 text-center">${badgeRank}</td>
+                    <td class="p-2.5 font-semibold text-slate-800">${item.teacher.name}</td>
+                    <td class="p-2.5 text-center font-bold text-emerald-600">${item.presentDutyDays} Hari</td>
+                    <td class="p-2.5 text-center text-slate-600">${item.dutyDaysCount} Hari</td>
+                    <td class="p-2.5 text-center font-black text-blue-900">${item.percentage.toFixed(1)}%</td>
+                    <td class="p-2.5 text-center font-mono text-slate-600">${avgHH}:${avgMM}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderGuruPanel() {
+            if (!currentGuruData) return;
+
+            document.getElementById('guru-profile-name').textContent = currentGuruData.name;
+            document.getElementById('guru-profile-nip').textContent = `NIP/ID: ${currentGuruData.nip}`;
+
+            // Calculate stats for current guru
+            const leaderboard = computeMonthlyLeaderboard();
+            const myRankIdx = leaderboard.findIndex(l => l.teacher.id === currentGuruData.id);
+            
+            if (myRankIdx !== -1) {
+                const myStat = leaderboard[myRankIdx];
+                document.getElementById('guru-stat-percent').textContent = `${myStat.percentage.toFixed(1)}%`;
+                document.getElementById('guru-stat-rank').textContent = `#${myRankIdx + 1}`;
+            }
+
+            // Render My History
+            const today = getTodayStr();
+            const currentMonthStr = today.substring(0, 7);
+            const myHistory = mockState.attendances.filter(a => a.teacherId === currentGuruData.id && a.date.startsWith(currentMonthStr));
+            
+            const tbody = document.getElementById('table-my-history');
+            tbody.innerHTML = myHistory.map(a => `
+                <tr>
+                    <td class="p-2.5 font-mono">${a.date}</td>
+                    <td class="p-2.5 font-bold">${a.time || '-'}</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${a.status==='HADIR'?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">${a.status}</span></td>
+                    <td class="p-2.5 text-slate-600">${a.notes || '-'}</td>
+                </tr>
+            `).join('') || `<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada riwayat presensi bulan ini.</td></tr>`;
+
+            checkAbsenEligibility();
+        }
+
+        // GURU ACTIONS
+        window.submitAbsenMasuk = async function() {
+            if (!currentGuruData) return alert("Silakan login sebagai guru terlebih dahulu.");
+
+            const newAtt = {
+                id: "att_" + Date.now(),
+                teacherId: currentGuruData.id,
+                date: getTodayStr(),
+                time: getTimeStr(),
+                status: "HADIR",
+                notes: "Hadir tepat waktu",
+                timestamp: Date.now()
+            };
+
+            if (!IS_PREVIEW && db) {
+                try {
+                    await addDoc(collection(db, "attendances"), newAtt);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            mockState.attendances.push(newAtt);
+            alert("Absensi masuk berhasil dicatat!");
+            refreshAllViews();
+        };
+
+        window.handleFormIzin = async function(e) {
+            e.preventDefault();
+            if (!currentGuruData) return alert("Silakan login sebagai guru.");
+
+            const type = document.getElementById('izin-type').value;
+            const reason = document.getElementById('izin-reason').value;
+
+            const newAtt = {
+                id: "att_" + Date.now(),
+                teacherId: currentGuruData.id,
+                date: getTodayStr(),
+                time: getTimeStr(),
+                status: type,
+                notes: reason,
+                timestamp: Date.now()
+            };
+
+            if (!IS_PREVIEW && db) {
+                try {
+                    await addDoc(collection(db, "attendances"), newAtt);
+                } catch (e) { console.error(e); }
+            }
+
+            mockState.attendances.push(newAtt);
+            alert(`Permohonan ${type} berhasil dikirim!`);
+            document.getElementById('form-izin-sakit').reset();
+            switchTab('guru-absen');
+            refreshAllViews();
+        };
+
+        // ADMIN ACTIONS & RENDERING
+        function renderAdminTeachers() {
+            const tbody = document.getElementById('table-admin-teachers');
+            const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+            
+            tbody.innerHTML = mockState.teachers.map(t => {
+                const daysStr = t.workDays.map(d => dayNames[d]).join(', ');
+                return `<tr>
+                    <td class="p-3 font-mono">${t.nip}</td>
+                    <td class="p-3 font-bold text-slate-800">${t.name}</td>
+                    <td class="p-3 font-mono text-slate-600">${t.username}</td>
+                    <td class="p-3 text-slate-600">${daysStr}</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="editTeacher('${t.id}')" class="text-blue-600 hover:text-blue-800"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteTeacher('${t.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.openModalGuru = function() {
+            document.getElementById('form-teacher').reset();
+            document.getElementById('teacher-doc-id').value = '';
+            document.getElementById('modal-guru-title').textContent = 'Tambah Guru Baru';
+            document.getElementById('modal-guru').classList.remove('hidden');
+        };
+
+        window.closeModalGuru = function() {
+            document.getElementById('modal-guru').classList.add('hidden');
+        };
+
+        window.editTeacher = function(id) {
+            const t = mockState.teachers.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('teacher-doc-id').value = t.id;
+            document.getElementById('teacher-nip').value = t.nip;
+            document.getElementById('teacher-name').value = t.name;
+            document.getElementById('teacher-username').value = t.username;
+            document.getElementById('teacher-password').value = t.password;
+
+            const checkboxes = document.querySelectorAll('.teacher-workday-cb');
+            checkboxes.forEach(cb => {
+                cb.checked = t.workDays.includes(parseInt(cb.value));
+            });
+
+            document.getElementById('modal-guru-title').textContent = 'Edit Data Guru';
+            document.getElementById('modal-guru').classList.remove('hidden');
+        };
+
+        window.saveTeacher = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('teacher-doc-id').value;
+            const nip = document.getElementById('teacher-nip').value;
+            const name = document.getElementById('teacher-name').value;
+            const username = document.getElementById('teacher-username').value;
+            const password = document.getElementById('teacher-password').value;
+
+            const workDays = [];
+            document.querySelectorAll('.teacher-workday-cb:checked').forEach(cb => {
+                workDays.push(parseInt(cb.value));
+            });
+
+            const teacherData = { nip, name, username, password, workDays };
+
+            if (id) {
+                // Update
+                const idx = mockState.teachers.findIndex(t => t.id === id);
+                if (idx !== -1) mockState.teachers[idx] = { ...mockState.teachers[idx], ...teacherData };
+                if (!IS_PREVIEW && db) await updateDoc(doc(db, "teachers", id), teacherData);
+            } else {
+                // Add
+                const newId = "t_" + Date.now();
+                const newObj = { id: newId, ...teacherData };
+                mockState.teachers.push(newObj);
+                if (!IS_PREVIEW && db) await setDoc(doc(db, "teachers", newId), newObj);
+            }
+
+            closeModalGuru();
+            refreshAllViews();
+        };
+
+        window.deleteTeacher = async function(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus data guru ini?")) return;
+            mockState.teachers = mockState.teachers.filter(t => t.id !== id);
+            if (!IS_PREVIEW && db) await deleteDoc(doc(db, "teachers", id));
+            refreshAllViews();
+        };
+
+        // HOLIDAY MANAGEMENT
+        window.saveWeeklyHolidays = async function(e) {
+            e.preventDefault();
+            const selected = [];
+            document.querySelectorAll('.weekly-checkbox:checked').forEach(cb => {
+                selected.push(parseInt(cb.value));
+            });
+            mockState.settings.weeklyHolidays = selected;
+            if (!IS_PREVIEW && db) {
+                await updateDoc(doc(db, "settings", "config"), { weeklyHolidays: selected });
+            }
+            alert("Hari libur mingguan berhasil diperbarui.");
+            refreshAllViews();
+        };
+
+        window.addCustomHoliday = async function(e) {
+            e.preventDefault();
+            const date = document.getElementById('holiday-date').value;
+            const description = document.getElementById('holiday-desc').value;
+
+            const item = { id: "hol_" + Date.now(), date, description };
+            mockState.customHolidays.push(item);
+
+            if (!IS_PREVIEW && db) {
+                await addDoc(collection(db, "custom_holidays"), item);
+            }
+
+            document.getElementById('form-custom-holiday').reset();
+            refreshAllViews();
+        };
+
+        window.deleteCustomHoliday = async function(id) {
+            mockState.customHolidays = mockState.customHolidays.filter(h => h.id !== id);
+            if (!IS_PREVIEW && db) await deleteDoc(doc(db, "custom_holidays", id));
+            refreshAllViews();
+        };
+
+        function renderCustomHolidays() {
+            const list = document.getElementById('list-custom-holidays');
+            list.innerHTML = mockState.customHolidays.map(h => `
+                <li class="py-2 flex justify-between items-center">
+                    <div>
+                        <span class="font-bold text-slate-800">${h.date}</span> - <span class="text-slate-600">${h.description}</span>
+                    </div>
+                    <button onclick="deleteCustomHoliday('${h.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-xmark"></i></button>
+                </li>
+            `).join('') || `<li class="py-2 text-slate-400">Belum ada hari libur kustom.</li>`;
+        }
+
+        // REKAP TANGGAL & PDF EXPORT
+        window.renderRekapTanggal = function() {
+            const start = document.getElementById('filter-start-date').value;
+            const end = document.getElementById('filter-end-date').value;
+            const tbody = document.getElementById('table-rekap-tanggal');
+
+            if (!start || !end) return alert("Pilih tanggal awal dan akhir terlebih dahulu.");
+
+            document.getElementById('pdf-period-text').textContent = `Periode: ${start} s/d ${end}`;
+
+            const filtered = mockState.attendances.filter(a => a.date >= start && a.date <= end);
+            
+            tbody.innerHTML = filtered.map(a => {
+                const t = mockState.teachers.find(x => x.id === a.teacherId);
+                return `<tr>
+                    <td class="border p-2 font-mono">${a.date}</td>
+                    <td class="border p-2 font-mono text-slate-500">${t ? t.nip : '-'}</td>
+                    <td class="border p-2 font-semibold">${t ? t.name : 'Unknown'}</td>
+                    <td class="border p-2 font-bold">${a.status}</td>
+                    <td class="border p-2 font-mono">${a.time || '-'}</td>
+                    <td class="border p-2 text-slate-600">${a.notes || '-'}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="6" class="p-4 text-center text-slate-400">Tidak ada riwayat presensi pada rentang tanggal ini.</td></tr>`;
+        };
+
+        window.downloadRekapTanggalPDF = function() {
+            const element = document.getElementById('print-area-tanggal');
+            const opt = {
+                margin: 0.5,
+                filename: `Rekap_Absensi_Tangal_${getTodayStr()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        // REKAP MATRIKS BULAN & PDF EXPORT
+        function populateYearDropdown() {
+            const select = document.getElementById('filter-year');
+            const currentYear = new Date().getFullYear();
+            select.innerHTML = '';
+            for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                select.appendChild(opt);
+            }
+        }
+
+        window.renderRekapBulan = function() {
+            const month = parseInt(document.getElementById('filter-month').value);
+            const year = parseInt(document.getElementById('filter-year').value);
+
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const thead = document.getElementById('thead-matriks-bulan');
+            const tbody = document.getElementById('tbody-matriks-bulan');
+
+            // Header columns
+            let headHTML = `<tr>
+                <th class="border p-1 text-left min-w-[120px]">Nama Guru</th>`;
+            for (let d = 1; d <= daysInMonth; d++) {
+                headHTML += `<th class="border p-0.5 text-center w-6">${d}</th>`;
+            }
+            headHTML += `<th class="border p-1 text-center font-bold">Hadir Tugas</th>
+                <th class="border p-1 text-center font-bold">% Presensi</th>
+                <th class="border p-1 text-center font-bold">Alpha</th>
+                <th class="border p-1 text-center font-bold">Sakit</th>
+                <th class="border p-1 text-center font-bold">Izin</th>
+            </tr>`;
+            thead.innerHTML = headHTML;
+
+            // Body Rows per Teacher
+            tbody.innerHTML = mockState.teachers.map(t => {
+                let rowHTML = `<tr><td class="border p-1 font-semibold truncate">${t.name}</td>`;
+                
+                let dutyCount = 0;
+                let presentDutyCount = 0;
+                let alphaCount = 0;
+                let sakitCount = 0;
+                let izinCount = 0;
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateObj = new Date(year, month, d);
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const dayOfWeek = dateObj.getDay();
+
+                    const isWeekly = mockState.settings.weeklyHolidays.includes(dayOfWeek);
+                    const isCustom = mockState.customHolidays.some(h => h.date === dateStr);
+                    const isDutyDay = t.workDays.includes(dayOfWeek);
+
+                    const att = mockState.attendances.find(a => a.teacherId === t.id && a.date === dateStr);
+
+                    let cellText = "";
+                    let cellBg = "";
+
+                    if (isWeekly || isCustom) {
+                        cellText = "L";
+                        cellBg = "bg-slate-100 text-slate-400";
+                    } else if (att) {
+                        if (att.status === 'HADIR') {
+                            if (isDutyDay) {
+                                cellText = att.time || 'H';
+                                presentDutyCount++;
+                                cellBg = "bg-emerald-50 text-emerald-800 font-mono";
+                            } else {
+                                cellText = "H";
+                                cellBg = "bg-blue-50 text-blue-800 font-bold";
+                            }
+                        } else if (att.status === 'SAKIT') {
+                            cellText = "S";
+                            sakitCount++;
+                            cellBg = "bg-blue-100 text-blue-900 font-bold";
+                        } else if (att.status === 'IZIN') {
+                            cellText = "I";
+                            izinCount++;
+                            cellBg = "bg-amber-100 text-amber-900 font-bold";
+                        }
+                    } else {
+                        if (isDutyDay) {
+                            cellText = "A";
+                            alphaCount++;
+                            cellBg = "bg-rose-100 text-rose-800 font-bold";
+                        } else {
+                            cellText = "-";
+                        }
+                    }
+
+                    if (isDutyDay && !isWeekly && !isCustom) {
+                        dutyCount++;
+                    }
+
+                    rowHTML += `<td class="border p-0.5 text-center text-[8px] ${cellBg}">${cellText}</td>`;
+                }
+
+                const percentage = dutyCount > 0 ? ((presentDutyCount / dutyCount) * 100).toFixed(1) : '0.0';
+
+                rowHTML += `<td class="border p-1 text-center font-bold text-emerald-700">${presentDutyCount}/${dutyCount}</td>
+                    <td class="border p-1 text-center font-black text-blue-900">${percentage}%</td>
+                    <td class="border p-1 text-center font-bold text-rose-700">${alphaCount}</td>
+                    <td class="border p-1 text-center font-bold text-blue-800">${sakitCount}</td>
+                    <td class="border p-1 text-center font-bold text-amber-800">${izinCount}</td>
+                </tr>`;
+
+                return rowHTML;
+            }).join('');
+        };
+
+        window.downloadRekapBulanPDF = function() {
+            const element = document.getElementById('print-area-bulan');
+            const opt = {
+                margin: 0.2,
+                filename: `Rekap_Matriks_Bulanan_${getTodayStr()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        // SETTINGS ACTIONS
+        window.saveSystemSettings = async function(e) {
+            e.preventDefault();
+            const logoUrl = document.getElementById('setting-logo-url').value;
+            const closeTime = document.getElementById('setting-close-time').value;
+            const lat = parseFloat(document.getElementById('setting-lat').value);
+            const lng = parseFloat(document.getElementById('setting-lng').value);
+            const radius = parseInt(document.getElementById('setting-radius').value);
+
+            mockState.settings = { ...mockState.settings, logoUrl, closeTime, lat, lng, radius };
+            document.getElementById('app-logo-img').src = logoUrl;
+
+            if (!IS_PREVIEW && db) {
+                await updateDoc(doc(db, "settings", "config"), mockState.settings);
+            }
+
+            alert("Pengaturan sistem berhasil disimpan.");
+            refreshAllViews();
+        };
+
+        // AUTHENTICATION HANDLERS
+        window.openLoginModal = () => document.getElementById('modal-login').classList.remove('hidden');
+        window.closeLoginModal = () => document.getElementById('modal-login').classList.add('hidden');
+
+        window.switchLoginRole = function(role) {
+            const tabG = document.getElementById('tab-login-guru');
+            const tabA = document.getElementById('tab-login-admin');
+            const formG = document.getElementById('form-login-guru');
+            const formA = document.getElementById('form-login-admin');
+
+            if (role === 'guru') {
+                tabG.className = "flex-1 py-2 font-bold text-xs border-b-2 border-blue-800 text-blue-800";
+                tabA.className = "flex-1 py-2 font-bold text-xs border-b-2 border-transparent text-slate-500";
+                formG.classList.remove('hidden');
+                formA.classList.add('hidden');
+            } else {
+                tabA.className = "flex-1 py-2 font-bold text-xs border-b-2 border-blue-800 text-blue-800";
+                tabG.className = "flex-1 py-2 font-bold text-xs border-b-2 border-transparent text-slate-500";
+                formA.classList.remove('hidden');
+                formG.classList.add('hidden');
+            }
+        };
+
+        window.handleGuruLogin = function(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-guru-username').value;
+            const p = document.getElementById('login-guru-password').value;
+
+            const teacher = mockState.teachers.find(t => t.username === u && t.password === p);
+            if (teacher) {
+                currentGuruData = teacher;
+                currentUserRole = 'guru';
+                updateUserUI(teacher.name);
+                showGuruMenus();
+                closeLoginModal();
+                switchTab('guru-absen');
+                refreshAllViews();
+            } else {
+                alert("Username atau Password Guru salah!");
+            }
+        };
+
+        window.handleAdminLogin = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-admin-email').value;
+            const pass = document.getElementById('login-admin-password').value;
+
+            if (!IS_PREVIEW && auth) {
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    closeLoginModal();
+                } catch (err) {
+                    alert("Login Admin Gagal: " + err.message);
+                }
+            } else {
+                // Mock Admin Login for Preview
+                currentUserRole = 'admin';
+                updateUserUI('Admin Sekolah');
+                showAdminMenus();
+                closeLoginModal();
+                switchTab('dashboard');
+                refreshAllViews();
+            }
+        };
+
+        window.handleLogout = function() {
+            if (auth && auth.currentUser) signOut(auth);
+            currentUserRole = 'guest';
+            currentGuruData = null;
+            updateUserUI(null);
+            hideSpecialMenus();
+            switchTab('dashboard');
+            refreshAllViews();
+        };
+
+        // NAVIGATION & UI SWITCHERS
+        function updateUserUI(name) {
+            const bar = document.getElementById('user-status-bar');
+            if (name) {
+                bar.innerHTML = `
+                    <div class="text-right">
+                        <span class="block text-xs font-bold leading-tight">${name}</span>
+                        <span class="text-[10px] text-blue-200 capitalize">${currentUserRole}</span>
+                    </div>
+                    <button onclick="handleLogout()" class="bg-rose-600 text-white p-1.5 rounded-lg text-xs hover:bg-rose-700">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                `;
+            } else {
+                bar.innerHTML = `
+                    <button onclick="openLoginModal()" class="bg-white text-blue-900 font-semibold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-blue-50 transition">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
+                    </button>
+                `;
+            }
+        }
+
+        function showGuruMenus() {
+            document.getElementById('teacher-menu-desktop').classList.remove('hidden-tab');
+            document.getElementById('teacher-menu-mobile').classList.remove('hidden-tab');
+            document.getElementById('admin-menu-desktop').classList.add('hidden-tab');
+            document.getElementById('admin-menu-mobile').classList.add('hidden-tab');
+        }
+
+        function showAdminMenus() {
+            document.getElementById('admin-menu-desktop').classList.remove('hidden-tab');
+            document.getElementById('admin-menu-mobile').classList.remove('hidden-tab');
+            document.getElementById('teacher-menu-desktop').classList.add('hidden-tab');
+            document.getElementById('teacher-menu-mobile').classList.add('hidden-tab');
+        }
+
+        function hideSpecialMenus() {
+            document.getElementById('teacher-menu-desktop').classList.add('hidden-tab');
+            document.getElementById('teacher-menu-mobile').classList.add('hidden-tab');
+            document.getElementById('admin-menu-desktop').classList.add('hidden-tab');
+            document.getElementById('admin-menu-mobile').classList.add('hidden-tab');
+        }
+
+        window.switchTab = function(tabName) {
+            const tabs = ['dashboard', 'guru-absen', 'guru-izin', 'admin-guru', 'admin-libur', 'admin-rekap-tanggal', 'admin-rekap-bulan', 'admin-pengaturan'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                if (el) el.classList.add('hidden-tab');
+            });
+
+            const activeView = document.getElementById(`view-${tabName}`);
+            if (activeView) activeView.classList.remove('hidden-tab');
+
+            // Render specific tabs when opened
+            if (tabName === 'admin-rekap-bulan') renderRekapBulan();
+            if (tabName === 'admin-pengaturan') populateSettingsForm();
+        };
+
+        function populateSettingsForm() {
+            const c = mockState.settings;
+            document.getElementById('setting-logo-url').value = c.logoUrl;
+            document.getElementById('setting-close-time').value = c.closeTime;
+            document.getElementById('setting-lat').value = c.lat;
+            document.getElementById('setting-lng').value = c.lng;
+            document.getElementById('setting-radius').value = c.radius;
+        }
+
+        function setupDatesUI() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date-display').textContent = new Date().toLocaleDateString('id-ID', options);
+        }
+    </script>
+</body>
+</html>
